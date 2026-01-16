@@ -1,0 +1,52 @@
+body {
+  font-family: 'Times New Roman', Times, serif;
+  background-image: url(https://static.vecteezy.com/system/resources/thumbnails/002/677/479/small/white-grey-paper-texture-background-kraft-paper-for-aesthetic-creative-design-free-photo.jpg);
+}
+
+.container {
+  max-width: 600px;
+  margin: auto;
+  padding: 20px;
+}
+
+.chat-box {
+  background: rgb(242, 251, 255);
+  padding: 15px;
+  height: 400px;
+  overflow-y: auto;
+  border: 2px solid black;
+
+}
+
+.user {
+  text-align: right;
+  margin: 10px;
+  color: rgb(79, 16, 120);
+}
+
+.bot {
+  text-align: left;
+  margin: 10px;
+  color: rgb(0, 46, 154);
+}
+
+.input-box {
+  display: flex;
+  margin-top: 10px;
+}
+
+input {
+  background-color: rgb(255, 255, 230);
+  flex: 1;
+  padding: 10px;
+}
+
+button {
+  padding: 10px 15px;
+  background-color: rgb(255, 255, 230);
+}
+
+.disclaimer {
+  font-size: 13px;
+  color: gray;
+}
