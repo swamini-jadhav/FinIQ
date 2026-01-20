@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Sentiment Analysis with FinBERT</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .input-section {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+            background: #fafafa;
+            padding: 30px;
+            border-radius: 8px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            color: #555;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        input {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            min-width: 300px;
+            background: white;
+            color: #333;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #d4af9f;
+            box-shadow: 0 0 0 3px rgba(212, 175, 159, 0.1);
+        }
+
+        button {
+            padding: 12px 40px;
+            background: #d4af9f;
+            color: #333;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            align-self: flex-end;
+        }
+
+        button:hover:not(:disabled) {
+            background: #c99f8f;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(212, 175, 159, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            display: none;
+            background: #fafafa;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .spinner {
+            border: 4px solid #f0f0f0;
+            border-top: 4px solid #d4af9f;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+            border-left: 4px solid #d4af9f;
+        }
+
+        .results {
+            display: none;
+        }
+
+        .company-badge {
+            display: inline-block;
+            background: #d4af9f;
+            color: #333;
+            padding: 8px 16px;
+            border-radius: 5px;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+
+        .overall-signal {
+            background: #fafafa;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 40px;
+            border: 2px solid #e0e0e0;
+            text-align: center;
+        }
+
+        .signal-box {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .signal-emoji {
+            font-size: 3em;
+            margin: 15px 0;
+        }
+
+        .signal-value {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #d4af9f;
+            margin: 15px 0;
+        }
+
+        .signal-explanation {
+            color: #666;
+            font-size: 1.1em;
+            margin: 15px 0;
+        }
+
+        .signal-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #d4af9f;
+        }
+
+        .stat-label {
+            color: #888;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #333;
+            margin-top: 5px;
+        }
+
+        .articles-section {
+            margin-top: 40px;
+        }
+
+        .articles-section h2 {
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 1.8em;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+        }
+
+        .article-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .article-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-color: #d4af9f;
+        }
+
+        .article-title {
+            color: #333;
+            font-weight: 600;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .article-meta {
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+
+        .article-source {
+            display: inline-block;
+            background: #f0f0f0;
+            padding: 4px 10px;
+            border-radius: 3px;
+            margin-right: 10px;
+        }
+
+        .article-date {
+            display: inline-block;
+        }
+
+        .article-sentiment {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .sentiment-badge {
+            background: #d4af9f;
+            color: #333;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .sentiment-emoji {
+            font-size: 1.5em;
+        }
+
+        .confidence {
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        .article-url {
+            display: inline-block;
+            color: #d4af9f;
+            text-decoration: none;
+            margin-top: 10px;
+            font-size: 0.95em;
+        }
+
+        .article-url:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .input-section {
+                flex-direction: column;
+            }
+
+            input {
+                min-width: 100%;
+            }
+
+            button {
+                width: 100%;
+                align-self: auto;
+            }
+
+            .signal-value {
+                font-size: 1.8em;
+            }
+
+            .signal-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📰 News Sentiment Analysis with FinBERT</h1>
+            <p>AI-Powered Financial News Analysis</p>
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <div class="input-section">
+            <div class="input-group">
+                <label for="company">Company Name or Stock Ticker</label>
+                <input 
+                    type="text" 
+                    id="company" 
+                    placeholder="e.g., Tesla, Apple, Microsoft"
+                    autocomplete="off"
+                >
+            </div>
+            <button id="analyzeBtn">Analyze News</button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Fetching news and analyzing sentiment...</p>
+            <p style="color: #999; font-size: 0.9em; margin-top: 10px;">This may take 30-60 seconds</p>
+        </div>
+
+        <div class="results" id="results">
+            <div class="company-badge" id="companyBadge"></div>
+
+            <div class="overall-signal">
+                <div class="signal-box">Overall Market Sentiment</div>
+                <div class="signal-emoji" id="signalEmoji"></div>
+                <div class="signal-value" id="signalValue">-</div>
+                <div class="signal-explanation" id="signalExplanation">-</div>
+                
+                <div class="signal-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">🟢 Positive</div>
+                        <div class="stat-value" id="positiveCount">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">🔴 Negative</div>
+                        <div class="stat-value" id="negativeCount">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">🟡 Neutral</div>
+                        <div class="stat-value" id="neutralCount">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">📊 Avg Confidence</div>
+                        <div class="stat-value" id="avgConfidence">0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="articles-section">
+                <h2>📰 Article Analysis</h2>
+                <div id="articlesContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        const companyInput = document.getElementById('company');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const errorDiv = document.getElementById('error');
+
+        analyzeBtn.addEventListener('click', async () => {
+            const company = companyInput.value.trim();
+
+            if (!company) {
+                showError('Please enter a company name');
+                return;
+            }
+
+            await analyze(company);
+        });
+
+        companyInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                analyzeBtn.click();
+            }
+        });
+
+        async function analyze(company) {
+            errorDiv.style.display = 'none';
+            results.style.display = 'none';
+            loading.style.display = 'block';
+            analyzeBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_URL}/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ company_name: company })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Analysis failed');
+                }
+
+                const data = await response.json();
+                displayResults(data, company);
+            } catch (error) {
+                showError(error.message || 'An error occurred during analysis');
+            } finally {
+                loading.style.display = 'none';
+                analyzeBtn.disabled = false;
+            }
+        }
+
+        function displayResults(data, company) {
+            document.getElementById('companyBadge').textContent = company.toUpperCase();
+            
+            const overall = data.overall;
+            document.getElementById('signalValue').textContent = overall.signal;
+            document.getElementById('signalEmoji').textContent = overall.emoji;
+            document.getElementById('signalExplanation').textContent = overall.explanation;
+            document.getElementById('positiveCount').textContent = overall.positive_count;
+            document.getElementById('negativeCount').textContent = overall.negative_count;
+            document.getElementById('neutralCount').textContent = overall.neutral_count;
+            document.getElementById('avgConfidence').textContent = overall.avg_confidence.toFixed(1) + '%';
+
+            // Display articles
+            const articlesContainer = document.getElementById('articlesContainer');
+            articlesContainer.innerHTML = '';
+
+            data.articles.forEach((article, index) => {
+                const articleHTML = `
+                    <div class="article-card">
+                        <div class="article-title">${index + 1}. ${article.title}</div>
+                        <div class="article-meta">
+                            <span class="article-source">📰 ${article.source}</span>
+                            <span class="article-date">📅 ${article.published}</span>
+                        </div>
+                        <div class="article-sentiment">
+                            <span class="sentiment-emoji">${article.emoji}</span>
+                            <span class="sentiment-badge">${article.sentiment}</span>
+                            <span class="confidence">Confidence: ${article.confidence.toFixed(1)}%</span>
+                            <span class="sentiment-badge" style="background: #e8d4c8;">${article.signal}</span>
+                        </div>
+                        <a href="${article.url}" target="_blank" class="article-url">Read full article →</a>
+                    </div>
+                `;
+                articlesContainer.innerHTML += articleHTML;
+            });
+
+            results.style.display = 'block';
+            window.scrollTo({ top: results.offsetTop - 100, behavior: 'smooth' });
+        }
+
+        function showError(message) {
+            errorDiv.textContent = '❌ ' + message;
+            errorDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
