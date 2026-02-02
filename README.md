@@ -1,81 +1,27 @@
-# FinIQ - Intelligent Stock Prediction Platform
+# FinIQ - Stock Prediction Platform
 
-AI-Powered Stock Market Analysis & Prediction System
-
-[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
-[![React](https://img.shields.io/badge/React-18.x-blue.svg)](https://reactjs.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-14+-green.svg)](https://nodejs.org/)
-[![Python](https://img.shields.io/badge/Python-3.8+-yellow.svg)](https://python.org/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Latest-brightgreen.svg)](https://www.mongodb.com/)
-
----
+A full-stack MERN application with Flask ML service for stock price prediction, sentiment analysis, and AI-powered insights.
 
 ## Overview
 
-FinIQ is a full-stack financial intelligence platform that leverages machine learning and natural language processing to provide stock price predictions, sentiment analysis, and AI-powered investment insights. Built with the MERN stack and integrated with a Flask-based ML service, FinIQ empowers investors with data-driven decision-making tools.
+FinIQ is an intelligent stock market analysis platform that combines machine learning and natural language processing to help investors make data-driven decisions. The platform provides LSTM-based price predictions, real-time news sentiment analysis, and an AI chatbot for stock market queries.
 
 ## Features
 
-### User Authentication & Security
-- Secure user registration and login system
-- JWT-based session management
-- Password encryption
-- Protected API routes
-
-### Stock Price Prediction
-- LSTM deep learning model trained on historical stock data
-- 60-day sliding window for pattern recognition
-- Multi-step ahead forecasting
-- Support for multiple stock exchanges (NSE, NASDAQ, NYSE, etc.)
-- Confidence intervals and prediction accuracy metrics
-
-### News Sentiment Analysis
-- Real-time news aggregation from NewsAPI
-- Sentiment scoring using TextBlob
-- Sentiment classification (Positive, Neutral, Negative)
-- Historical sentiment trend tracking
-
-### AI-Powered Chatbot
-- Natural language query processing
-- Stock information retrieval
-- Market trend explanations
-- Educational responses about financial concepts
-
-### Interactive Dashboard
-- Real-time stock price charts
-- Prediction vs. actual price visualization
-- Sentiment score timeline
-- Customizable watchlists
-
-### Investment Recommendations
-- Multi-factor analysis combining technical indicators, sentiment scores, and price predictions
-- Risk-adjusted recommendation engine
-- Buy/Hold/Sell signals with confidence levels
+- **User Authentication** - Secure sign up/sign in with JWT authentication
+- **Stock Price Prediction** - LSTM neural network model with 60-day lookback for forecasting future prices
+- **News Sentiment Analysis** - NLP-powered sentiment scoring of real-time stock news using TextBlob
+- **AI Chatbot** - Interactive chatbot for answering stock market questions and providing insights
+- **Interactive Dashboard** - Real-time charts, predictions, and sentiment visualization
+- **Investment Recommendations** - AI-generated buy/hold/sell recommendations based on technical and sentiment analysis
 
 ## Tech Stack
 
-### Frontend
-- React.js
-- React Router
-- Axios
-- Chart.js
-- TailwindCSS
+**Frontend:** React.js, Axios, React Router, Chart.js, TailwindCSS
 
-### Backend
-- Node.js + Express
-- MongoDB + Mongoose
-- Passport.js (Local Strategy)
-- JWT Authentication
-- bcrypt
+**Backend:** Node.js, Express, MongoDB, Mongoose, Passport.js, JWT
 
-### ML Service
-- Flask
-- PyTorch (LSTM Networks)
-- yfinance
-- TextBlob
-- NewsAPI
-- pandas
-- numpy
+**ML Service:** Flask, PyTorch, LSTM Networks, yfinance, TextBlob, NewsAPI
 
 ## Project Structure
 
@@ -87,45 +33,25 @@ FinIQ/
 └── README.md
 ```
 
-## API Endpoints
+## Machine Learning
 
-### Authentication
-```
-POST   /api/auth/register      - Register new user
-POST   /api/auth/login         - Authenticate user
-POST   /api/auth/logout        - Logout user
-GET    /api/auth/user          - Get current user profile
-```
+**LSTM Model Architecture:**
+- Input: 60-day historical price data
+- Two stacked LSTM layers (128 and 64 units)
+- Dropout layers (0.2) for regularization
+- Dense output layer for price prediction
 
-### Stock Prediction
-```
-POST   /api/ml/predict         - Get LSTM price prediction
-POST   /api/ml/news-sentiment  - Analyze news sentiment
-POST   /api/ml/recommendation  - Get investment recommendation
-```
-
-### Chatbot
-```
-POST   /api/chatbot/query      - Send query to AI chatbot
-```
-
-## Machine Learning Model
-
-The prediction model uses a stacked LSTM (Long Short-Term Memory) neural network with the following architecture:
-
-- Input Layer: 60 timesteps of historical prices
-- LSTM Layer 1: 128 units with dropout (0.2)
-- LSTM Layer 2: 64 units with dropout (0.2)
-- Dense Layer: 25 units with ReLU activation
-- Output Layer: 1 unit (next day's closing price)
-
-### Training Details
+**Training:**
 - Loss Function: Mean Squared Error (MSE)
-- Optimizer: Adam (lr=0.001)
-- Training Data: Last 5 years of historical data
-- Validation Split: 80-20
-- Epochs: 50 with early stopping
+- Optimizer: Adam
+- Dataset: 5 years of historical stock data
+- Trained with 80-20 train-validation split
+
+**NLP Sentiment Analysis:**
+- Real-time news fetched via NewsAPI
+- Sentiment scoring using TextBlob
+- Classification into Positive/Neutral/Negative categories
 
 ## License
 
-This project is licensed under the MIT License.
+MIT License
