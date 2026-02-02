@@ -6,7 +6,6 @@ const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const { authenticateJWT } = require('../middleware/auth');
 
-// Generate JWT token
 const generateToken = (user) => {
   return jwt.sign(
     { id: user._id, email: user.email },
@@ -15,16 +14,12 @@ const generateToken = (user) => {
   );
 };
 
-// @route   POST /api/auth/register
-// @desc    Register a new user
-// @access  Public
 router.post('/register', [
   body('name').trim().notEmpty().withMessage('Name is required'),
   body('email').isEmail().withMessage('Please provide a valid email'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
 ], async (req, res) => {
   try {
-    // Validate input
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ 
@@ -35,7 +30,6 @@ router.post('/register', [
 
     const { name, email, password } = req.body;
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ 
@@ -44,7 +38,6 @@ router.post('/register', [
       });
     }
 
-    // Create new user
     const user = new User({
       name,
       email,
@@ -53,7 +46,6 @@ router.post('/register', [
 
     await user.save();
 
-    // Generate token
     const token = generateToken(user);
 
     res.status(201).json({
@@ -75,14 +67,10 @@ router.post('/register', [
   }
 });
 
-// @route   POST /api/auth/login
-// @desc    Login user
-// @access  Public
 router.post('/login', [
   body('email').isEmail().withMessage('Please provide a valid email'),
   body('password').notEmpty().withMessage('Password is required')
 ], (req, res, next) => {
-  // Validate input
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ 
@@ -106,7 +94,6 @@ router.post('/login', [
       });
     }
 
-    // Generate token
     const token = generateToken(user);
 
     res.json({
@@ -122,9 +109,6 @@ router.post('/login', [
   })(req, res, next);
 });
 
-// @route   POST /api/auth/logout
-// @desc    Logout user
-// @access  Private
 router.post('/logout', authenticateJWT, (req, res) => {
   req.logout((err) => {
     if (err) {
@@ -141,9 +125,7 @@ router.post('/logout', authenticateJWT, (req, res) => {
   });
 });
 
-// @route   GET /api/auth/user
-// @desc    Get current user
-// @access  Private
+
 router.get('/user', authenticateJWT, (req, res) => {
   res.json({
     success: true,
@@ -157,9 +139,7 @@ router.get('/user', authenticateJWT, (req, res) => {
   });
 });
 
-// @route   PUT /api/auth/favorites
-// @desc    Add/Remove favorite stock
-// @access  Private
+
 router.put('/favorites', authenticateJWT, async (req, res) => {
   try {
     const { ticker, action } = req.body;

@@ -4,7 +4,6 @@ const ExtractJwt = require('passport-jwt').ExtractJwt;
 const User = require('../models/User');
 
 module.exports = function(passport) {
-  // Local Strategy for login
   passport.use(new LocalStrategy(
     {
       usernameField: 'email',
@@ -12,14 +11,12 @@ module.exports = function(passport) {
     },
     async (email, password, done) => {
       try {
-        // Find user by email
         const user = await User.findOne({ email });
         
         if (!user) {
           return done(null, false, { message: 'Invalid email or password' });
         }
 
-        // Check password
         const isMatch = await user.comparePassword(password);
         
         if (!isMatch) {
@@ -33,7 +30,6 @@ module.exports = function(passport) {
     }
   ));
 
-  // JWT Strategy for protected routes
   const jwtOptions = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     secretOrKey: process.env.JWT_SECRET
@@ -53,12 +49,10 @@ module.exports = function(passport) {
     }
   }));
 
-  // Serialize user for session
   passport.serializeUser((user, done) => {
     done(null, user.id);
   });
 
-  // Deserialize user from session
   passport.deserializeUser(async (id, done) => {
     try {
       const user = await User.findById(id);
