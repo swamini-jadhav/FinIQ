@@ -24,7 +24,22 @@ ChartJS.register(
 );
 
 const PredictionChart = ({ data, predictedPrice }) => {
-  const labels = [...Array(data.length).keys()].map(i => `Day ${i + 1}`);
+  const flattenedData = data.map(item => {
+    if (Array.isArray(item)) {
+      return item[0];
+    }
+    return item;
+  }).filter(val => val !== null && val !== undefined && !isNaN(val));
+
+  if (flattenedData.length === 0) {
+    return (
+      <div style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p className="text-gray-500">No price data available for chart</p>
+      </div>
+    );
+  }
+
+  const labels = [...Array(flattenedData.length).keys()].map(i => `Day ${i + 1}`);
   labels.push('Predicted');
 
   const chartData = {
@@ -32,7 +47,7 @@ const PredictionChart = ({ data, predictedPrice }) => {
     datasets: [
       {
         label: 'Historical Prices',
-        data: [...data, null],
+        data: [...flattenedData, null],
         borderColor: 'rgb(59, 130, 246)',
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
         fill: true,
@@ -42,7 +57,7 @@ const PredictionChart = ({ data, predictedPrice }) => {
       },
       {
         label: 'Predicted Price',
-        data: [...Array(data.length).fill(null), predictedPrice],
+        data: [...Array(flattenedData.length).fill(null), predictedPrice],
         borderColor: 'rgb(239, 68, 68)',
         backgroundColor: 'rgba(239, 68, 68, 0.1)',
         borderDash: [5, 5],

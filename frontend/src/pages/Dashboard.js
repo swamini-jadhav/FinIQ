@@ -40,11 +40,9 @@ const Dashboard = () => {
     setResults(null);
 
     try {
-      // Fetch comprehensive analysis
       const response = await mlAPI.recommendation(ticker.toUpperCase(), company);
       
       if (response.data.success) {
-        // setResults(response.data.data);
         const actualData = response.data.data?.data || response.data.data;
         setResults(actualData);
       } else {
