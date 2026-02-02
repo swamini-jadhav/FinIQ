@@ -4,12 +4,12 @@ A full-stack MERN application with Flask ML service for stock price prediction, 
 
 ## Features
 
-- 🔐 User Authentication (Sign up, Sign in, Sign out)
-- 📈 LSTM-based Stock Price Prediction (60-day lookback)
-- 📰 Real-time Stock News with Sentiment Analysis
-- 🤖 AI Chatbot for Stock Market Queries
-- 📊 Interactive Dashboard
-- 💡 Investment Recommendations
+- User Authentication (Sign up, Sign in, Sign out)
+- LSTM-based Stock Price Prediction (60-day lookback)
+- Real-time Stock News with Sentiment Analysis
+- AI Chatbot for Stock Market Queries
+- Interactive Dashboard
+- Investment Recommendations
 
 ## Tech Stack
 
