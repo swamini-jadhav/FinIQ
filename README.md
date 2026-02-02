@@ -1,22 +1,63 @@
-# FinIQ - Stock Prediction Platform
+# FinIQ - Intelligent Stock Prediction Platform
 
-A full-stack MERN application with Flask ML service for stock price prediction, sentiment analysis, and AI-powered insights.
+AI-Powered Stock Market Analysis & Prediction System
+
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+[![React](https://img.shields.io/badge/React-18.x-blue.svg)](https://reactjs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-14+-green.svg)](https://nodejs.org/)
+[![Python](https://img.shields.io/badge/Python-3.8+-yellow.svg)](https://python.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Latest-brightgreen.svg)](https://www.mongodb.com/)
+
+---
+
+## Overview
+
+FinIQ is a full-stack financial intelligence platform that leverages machine learning and natural language processing to provide stock price predictions, sentiment analysis, and AI-powered investment insights. Built with the MERN stack and integrated with a Flask-based ML service, FinIQ empowers investors with data-driven decision-making tools.
 
 ## Features
 
-- User Authentication (Sign up, Sign in, Sign out)
-- LSTM-based Stock Price Prediction (60-day lookback)
-- Real-time Stock News with Sentiment Analysis
-- AI Chatbot for Stock Market Queries
-- Interactive Dashboard
-- Investment Recommendations
+### User Authentication & Security
+- Secure user registration and login system
+- JWT-based session management
+- Password encryption
+- Protected API routes
+
+### Stock Price Prediction
+- LSTM deep learning model trained on historical stock data
+- 60-day sliding window for pattern recognition
+- Multi-step ahead forecasting
+- Support for multiple stock exchanges (NSE, NASDAQ, NYSE, etc.)
+- Confidence intervals and prediction accuracy metrics
+
+### News Sentiment Analysis
+- Real-time news aggregation from NewsAPI
+- Sentiment scoring using TextBlob
+- Sentiment classification (Positive, Neutral, Negative)
+- Historical sentiment trend tracking
+
+### AI-Powered Chatbot
+- Natural language query processing
+- Stock information retrieval
+- Market trend explanations
+- Educational responses about financial concepts
+
+### Interactive Dashboard
+- Real-time stock price charts
+- Prediction vs. actual price visualization
+- Sentiment score timeline
+- Customizable watchlists
+
+### Investment Recommendations
+- Multi-factor analysis combining technical indicators, sentiment scores, and price predictions
+- Risk-adjusted recommendation engine
+- Buy/Hold/Sell signals with confidence levels
 
 ## Tech Stack
 
 ### Frontend
 - React.js
-- Axios
 - React Router
+- Axios
 - Chart.js
 - TailwindCSS
 
@@ -25,13 +66,16 @@ A full-stack MERN application with Flask ML service for stock price prediction, 
 - MongoDB + Mongoose
 - Passport.js (Local Strategy)
 - JWT Authentication
+- bcrypt
 
-### ML Service (Flask)
+### ML Service
 - Flask
-- PyTorch (LSTM Model)
+- PyTorch (LSTM Networks)
 - yfinance
-- TextBlob (Sentiment Analysis)
+- TextBlob
 - NewsAPI
+- pandas
+- numpy
 
 ## Project Structure
 
@@ -39,149 +83,49 @@ A full-stack MERN application with Flask ML service for stock price prediction, 
 FinIQ/
 ├── backend/          # Node.js Express API
 ├── frontend/         # React Application
-├── ml-service/       # Flask ML API
+├── ml-service/       # Flask ML Service
 └── README.md
 ```
-
-## Setup Instructions
-
-### Prerequisites
-- Node.js (v14+)
-- Python (v3.8+)
-- MongoDB
-- NewsAPI Key (get from https://newsapi.org/)
-
-### 1. Backend Setup
-
-```bash
-cd backend
-npm install
-```
-
-Create `.env` file:
-```
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/finiq
-JWT_SECRET=your_jwt_secret_here
-SESSION_SECRET=your_session_secret_here
-ML_SERVICE_URL=http://localhost:5001
-NEWSAPI_KEY=your_newsapi_key_here
-NODE_ENV=development
-```
-
-Start backend:
-```bash
-npm start
-```
-
-### 2. ML Service Setup
-
-```bash
-cd ml-service
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-Create `.env` file:
-```
-FLASK_PORT=5001
-NEWSAPI_KEY=your_newsapi_key_here
-```
-
-Start ML service:
-```bash
-python app.py
-```
-
-### 3. Frontend Setup
-
-```bash
-cd frontend
-npm install
-```
-
-Create `.env` file:
-```
-REACT_APP_API_URL=http://localhost:5000
-REACT_APP_ML_API_URL=http://localhost:5001
-```
-
-Start frontend:
-```bash
-npm start
-```
-
-## Deployment on Render
-
-### 1. MongoDB Atlas Setup
-- Create a free cluster at https://www.mongodb.com/cloud/atlas
-- Get connection string
-- Whitelist all IPs (0.0.0.0/0)
-
-### 2. Backend Deployment
-- Create new Web Service
-- Connect GitHub repository
-- Root directory: `backend`
-- Build command: `npm install`
-- Start command: `npm start`
-- Add environment variables from `.env`
-
-### 3. ML Service Deployment
-- Create new Web Service
-- Root directory: `ml-service`
-- Build command: `pip install -r requirements.txt`
-- Start command: `gunicorn app:app`
-- Add environment variables from `.env`
-
-### 4. Frontend Deployment
-- Create new Static Site
-- Root directory: `frontend`
-- Build command: `npm run build`
-- Publish directory: `build`
-- Add environment variables with deployed backend URLs
 
 ## API Endpoints
 
 ### Authentication
-- POST `/api/auth/register` - Register new user
-- POST `/api/auth/login` - Login user
-- POST `/api/auth/logout` - Logout user
-- GET `/api/auth/user` - Get current user
+```
+POST   /api/auth/register      - Register new user
+POST   /api/auth/login         - Authenticate user
+POST   /api/auth/logout        - Logout user
+GET    /api/auth/user          - Get current user profile
+```
 
 ### Stock Prediction
-- POST `/api/ml/predict` - Get stock price prediction
-- POST `/api/ml/news-sentiment` - Get news sentiment analysis
-- POST `/api/ml/recommendation` - Get investment recommendation
+```
+POST   /api/ml/predict         - Get LSTM price prediction
+POST   /api/ml/news-sentiment  - Analyze news sentiment
+POST   /api/ml/recommendation  - Get investment recommendation
+```
 
 ### Chatbot
-- POST `/api/chatbot/query` - Ask chatbot a question
+```
+POST   /api/chatbot/query      - Send query to AI chatbot
+```
 
-## Environment Variables
+## Machine Learning Model
 
-### Backend
-- `PORT` - Server port (default: 5000)
-- `MONGODB_URI` - MongoDB connection string
-- `JWT_SECRET` - JWT signing secret
-- `SESSION_SECRET` - Session secret
-- `ML_SERVICE_URL` - ML service URL
-- `NEWSAPI_KEY` - NewsAPI key
+The prediction model uses a stacked LSTM (Long Short-Term Memory) neural network with the following architecture:
 
-### ML Service
-- `FLASK_PORT` - Flask server port (default: 5001)
-- `NEWSAPI_KEY` - NewsAPI key
+- Input Layer: 60 timesteps of historical prices
+- LSTM Layer 1: 128 units with dropout (0.2)
+- LSTM Layer 2: 64 units with dropout (0.2)
+- Dense Layer: 25 units with ReLU activation
+- Output Layer: 1 unit (next day's closing price)
 
-### Frontend
-- `REACT_APP_API_URL` - Backend API URL
-- `REACT_APP_ML_API_URL` - ML service URL
-
-## Usage
-
-1. Register/Login to the platform
-2. Enter a stock ticker (e.g., TCS.NS, AAPL, TSLA)
-3. View price prediction, news sentiment, and recommendations
-4. Use the chatbot for queries about stocks
+### Training Details
+- Loss Function: Mean Squared Error (MSE)
+- Optimizer: Adam (lr=0.001)
+- Training Data: Last 5 years of historical data
+- Validation Split: 80-20
+- Epochs: 50 with early stopping
 
 ## License
 
-MIT
+This project is licensed under the MIT License.
