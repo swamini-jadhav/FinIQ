@@ -8,18 +8,14 @@ NEWSAPI_KEY = os.getenv('NEWSAPI_KEY')
 def get_stock_news(ticker, company_name=None, days=7):
     """Fetch recent news articles for a stock"""
     try:
-        # Determine search query
         if company_name:
             query = company_name
         else:
-            # Try to extract company name from ticker
             query = ticker.replace('.NS', '').replace('.BO', '').replace('-', ' ')
         
-        # Calculate date range
         to_date = datetime.now()
         from_date = to_date - timedelta(days=days)
         
-        # NewsAPI endpoint
         url = 'https://newsapi.org/v2/everything'
         
         params = {
@@ -49,12 +45,10 @@ def get_stock_news(ticker, company_name=None, days=7):
 
 
 def analyze_sentiment(text):
-    """Analyze sentiment of text using TextBlob"""
     try:
         blob = TextBlob(text)
         polarity = blob.sentiment.polarity
         
-        # Classify sentiment
         if polarity > 0.1:
             sentiment = 'positive'
         elif polarity < -0.1:
@@ -75,9 +69,7 @@ def analyze_sentiment(text):
 
 
 def analyze_news_sentiment(ticker, company_name=None):
-    """Analyze sentiment of news articles for a stock"""
     try:
-        # Fetch news articles
         articles = get_stock_news(ticker, company_name)
         
         if not articles:
@@ -95,15 +87,13 @@ def analyze_news_sentiment(ticker, company_name=None):
                 'message': 'No recent news articles found'
             }
         
-        # Analyze each article
         sentiments = []
         analyzed_articles = []
         
-        for article in articles[:10]:  # Analyze top 10 articles
+        for article in articles[:10]:  
             title = article.get('title', '')
             description = article.get('description', '')
             
-            # Combine title and description for analysis
             text = f"{title}. {description}"
             
             sentiment = analyze_sentiment(text)
@@ -119,7 +109,6 @@ def analyze_news_sentiment(ticker, company_name=None):
                 'polarity': round(sentiment['polarity'], 3)
             })
         
-        # Calculate overall sentiment
         avg_polarity = sum(sentiments) / len(sentiments) if sentiments else 0
         
         if avg_polarity > 0.1:
@@ -129,7 +118,6 @@ def analyze_news_sentiment(ticker, company_name=None):
         else:
             overall_sentiment = 'neutral'
         
-        # Count sentiment distribution
         sentiment_counts = {
             'positive': sum(1 for s in sentiments if s > 0.1),
             'neutral': sum(1 for s in sentiments if -0.1 <= s <= 0.1),
@@ -150,19 +138,15 @@ def analyze_news_sentiment(ticker, company_name=None):
 
 
 def generate_recommendation(prediction_data, sentiment_data):
-    """Generate investment recommendation based on prediction and sentiment"""
     try:
-        # Extract key metrics
         predicted_change = prediction_data.get('percent_change', 0)
         r2_score = prediction_data.get('r2_score', 0)
         sentiment = sentiment_data.get('overall_sentiment', 'neutral')
         avg_polarity = sentiment_data.get('average_polarity', 0)
         
-        # Scoring system
         score = 0
         reasons = []
         
-        # Price prediction factor (40% weight)
         if predicted_change > 2:
             score += 40
             reasons.append(f"Strong predicted price increase ({predicted_change:.2f}%)")
@@ -176,7 +160,6 @@ def generate_recommendation(prediction_data, sentiment_data):
             score -= 30
             reasons.append(f"Significant predicted price decrease ({predicted_change:.2f}%)")
         
-        # Model confidence factor (20% weight)
         if r2_score > 0.95:
             score += 20
             reasons.append(f"High model confidence (R² = {r2_score:.3f})")
@@ -187,7 +170,6 @@ def generate_recommendation(prediction_data, sentiment_data):
             score -= 5
             reasons.append(f"Moderate model confidence (R² = {r2_score:.3f})")
         
-        # News sentiment factor (40% weight)
         if sentiment == 'positive' and avg_polarity > 0.2:
             score += 40
             reasons.append(f"Strong positive news sentiment (polarity: {avg_polarity:.3f})")
@@ -204,7 +186,6 @@ def generate_recommendation(prediction_data, sentiment_data):
             score -= 20
             reasons.append(f"Negative news sentiment (polarity: {avg_polarity:.3f})")
         
-        # Determine recommendation
         if score >= 60:
             recommendation = 'Strong Buy'
             action = 'BUY'

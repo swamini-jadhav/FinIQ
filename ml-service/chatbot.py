@@ -1,8 +1,5 @@
 import random
 
-# Simple rule-based chatbot responses
-# In production, you could integrate with OpenAI API or similar
-
 RESPONSES = {
     'greeting': [
         "Hello! I'm FinIQ Bot. How can I help you with stock market queries today?",
@@ -86,18 +83,15 @@ def get_chatbot_response(message, context=None):
     try:
         message_lower = message.lower()
         
-        # Find matching category
         matched_category = 'default'
         for category, keywords in KEYWORDS.items():
             if any(keyword in message_lower for keyword in keywords):
                 matched_category = category
                 break
         
-        # Get response
         responses = RESPONSES.get(matched_category, RESPONSES['default'])
         response_text = random.choice(responses)
         
-        # Add context-specific information if available
         if context and 'ticker' in context:
             ticker = context['ticker']
             if 'stock' in message_lower or 'ticker' in message_lower:

@@ -8,18 +8,14 @@ from lstm_model import predict_stock
 from sentiment_analysis import analyze_news_sentiment, generate_recommendation
 from chatbot import get_chatbot_response
 
-# Load environment variables
 load_dotenv()
 
-# Initialize Flask app
 app = Flask(__name__)
 CORS(app)
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Configuration
 PORT = int(os.getenv('FLASK_PORT', 5001))
 NEWSAPI_KEY = os.getenv('NEWSAPI_KEY')
 
@@ -55,7 +51,6 @@ def predict():
         
         logger.info(f"Processing prediction request for {ticker}")
         
-        # Run prediction
         result = predict_stock(ticker, num_epochs=num_epochs)
         
         return jsonify({
@@ -101,7 +96,6 @@ def news_sentiment():
                 'message': 'News API key not configured'
             }), 503
         
-        # Analyze sentiment
         result = analyze_news_sentiment(ticker, company)
         
         return jsonify({
@@ -134,24 +128,19 @@ def recommendation():
         
         logger.info(f"Generating recommendation for {ticker}")
         
-        # Get prediction
         prediction_result = predict_stock(ticker, num_epochs=50)
         
-        # Get sentiment analysis
         if NEWSAPI_KEY:
             sentiment_result = analyze_news_sentiment(ticker, company)
         else:
-            # Default sentiment if API key not available
             sentiment_result = {
                 'overall_sentiment': 'neutral',
                 'average_polarity': 0,
                 'articles_analyzed': 0
             }
         
-        # Generate recommendation
         recommendation_result = generate_recommendation(prediction_result, sentiment_result)
         
-        # Combine all results
         combined_result = {
             'ticker': ticker,
             'prediction': prediction_result,
@@ -196,7 +185,6 @@ def chatbot():
         
         logger.info(f"Processing chatbot query: {message[:50]}...")
         
-        # Get chatbot response
         result = get_chatbot_response(message, context)
         
         return jsonify({
@@ -247,6 +235,6 @@ def internal_error(error):
 
 
 if __name__ == '__main__':
-    logger.info(f"🚀 Starting FinIQ ML Service on port {PORT}")
-    logger.info(f"📊 NewsAPI configured: {bool(NEWSAPI_KEY)}")
+    logger.info(f"Starting FinIQ ML Service on port {PORT}")
+    logger.info(f"NewsAPI configured: {bool(NEWSAPI_KEY)}")
     app.run(host='0.0.0.0', port=PORT, debug=os.getenv('FLASK_ENV') == 'development')

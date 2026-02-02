@@ -41,7 +41,6 @@ class StockLSTM(nn.Module):
 
 
 def fetch_stock_data(ticker, period="5y"):
-    """Fetch stock data from Yahoo Finance"""
     try:
         data = yf.download(ticker, period=period, progress=False)
         if data.empty:
@@ -53,16 +52,12 @@ def fetch_stock_data(ticker, period="5y"):
 
 
 def calculate_technical_indicators(df):
-    """Calculate technical indicators"""
     data = df.copy()
     
-    # Simple Moving Average (10-day)
     data['SMA_10'] = data['Close'].rolling(window=10).mean()
     
-    # Exponential Moving Average (20-day)
     data['EMA_20'] = data['Close'].ewm(span=20, adjust=False).mean()
     
-    # Relative Strength Index (14-day)
     delta = data['Close'].diff()
     gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
     loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
@@ -75,18 +70,16 @@ def calculate_technical_indicators(df):
 
 
 def create_sequences(data, seq_length=60):
-    """Create sequences for LSTM input"""
     X, y = [], []
     
     for i in range(seq_length, len(data)):
         X.append(data[i-seq_length:i])
-        y.append(data[i, 3])  # Close price index
+        y.append(data[i, 3])  
     
     return np.array(X), np.array(y)
 
 
 def prepare_data(df, seq_length=60, train_split=0.8):
-    """Prepare and scale data for training"""
     feature_cols = ['Open', 'High', 'Low', 'Close', 'Volume', 'SMA_10', 'EMA_20', 'RSI_14']
     data = df[feature_cols].values
     
@@ -114,7 +107,6 @@ def prepare_data(df, seq_length=60, train_split=0.8):
 
 
 def train_model(model, train_loader, criterion, optimizer, num_epochs=50, device='cpu'):
-    """Train the LSTM model"""
     model.to(device)
     model.train()
     
@@ -142,7 +134,6 @@ def train_model(model, train_loader, criterion, optimizer, num_epochs=50, device
 
 
 def evaluate_model(model, test_loader, scaler, device='cpu'):
-    """Evaluate the model and return metrics"""
     model.to(device)
     model.eval()
     
@@ -159,7 +150,6 @@ def evaluate_model(model, test_loader, scaler, device='cpu'):
     predictions = np.array(predictions)
     actuals = np.array(actuals)
     
-    # Inverse transform
     dummy = np.zeros((len(predictions), scaler.n_features_in_))
     dummy[:, 3] = predictions
     predictions_inv = scaler.inverse_transform(dummy)[:, 3]
@@ -174,7 +164,6 @@ def evaluate_model(model, test_loader, scaler, device='cpu'):
 
 
 def predict_next_close(model, data, scaler, seq_length=60, device='cpu'):
-    """Predict next day's closing price"""
     model.to(device)
     model.eval()
     
@@ -196,26 +185,21 @@ def predict_next_close(model, data, scaler, seq_length=60, device='cpu'):
 
 
 def predict_stock(ticker, num_epochs=50):
-    """Main prediction function"""
     try:
-        # Fetch and prepare data
         print(f"Fetching data for {ticker}...")
         df = fetch_stock_data(ticker)
         df = calculate_technical_indicators(df)
         
-        # Prepare data
         train_loader, test_loader, scaler, feature_cols, X_test, y_test = prepare_data(
             df, seq_length=60
         )
         
-        # Initialize model
         input_size = len(feature_cols)
         model = StockLSTM(input_size=input_size, hidden_size=64, num_layers=2, dropout=0.2)
         
         criterion = nn.MSELoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
         
-        # Train model
         print(f"Training model for {ticker}...")
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
         train_losses = train_model(
@@ -223,20 +207,16 @@ def predict_stock(ticker, num_epochs=50):
             num_epochs=num_epochs, device=device
         )
         
-        # Evaluate model
         print(f"Evaluating model for {ticker}...")
         predictions, actuals, mse, r2 = evaluate_model(
             model, test_loader, scaler, device=device
         )
         
-        # Predict next close
         next_price = predict_next_close(model, df, scaler, seq_length=60, device=device)
         last_close = float(df['Close'].iloc[-1])
         price_change = next_price - last_close
         percent_change = ((next_price / last_close) - 1) * 100
         
-        # Get historical data for context
-        #recent_prices = df['Close'].tail(30).tolist()
         recent_prices = df['Close'].tail(30).values.tolist()
         
         return {
