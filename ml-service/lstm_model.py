@@ -40,15 +40,44 @@ class StockLSTM(nn.Module):
         return out
 
 
+def resolve_ticker(ticker):
+    """Try to find valid yfinance ticker by auto-appending Indian exchange suffixes."""
+    candidates = [ticker]
+    
+    # If no suffix already, try Indian exchanges
+    if not any(ticker.endswith(s) for s in ['.NS', '.BO', '.', '-']):
+        candidates += [f"{ticker}.NS", f"{ticker}.BO"]
+    
+    for candidate in candidates:
+        try:
+            data = yf.download(candidate, period="1mo", progress=False)
+            if not data.empty:
+                return candidate
+        except Exception:
+            continue
+    
+    raise ValueError(
+        f"No data found for '{ticker}'. "
+        f"Tried: {', '.join(candidates)}. "
+        f"For Indian stocks use NSE (e.g. TCS.NS) or BSE (e.g. TCS.BO) suffix, "
+        f"or just type the symbol and it will be auto-detected."
+    )
+
+
 def fetch_stock_data(ticker, period="5y"):
     try:
-        data = yf.download(ticker, period=period, progress=False)
+        resolved = resolve_ticker(ticker)
+        if resolved != ticker:
+            print(f"Resolved '{ticker}' → '{resolved}'")
+        data = yf.download(resolved, period=period, progress=False)
         if data.empty:
-            raise ValueError(f"No data found for ticker: {ticker}")
+            raise ValueError(f"No data found for ticker: {resolved}")
         data = data[['Open', 'High', 'Low', 'Close', 'Volume']]
-        return data
+        data._resolved_ticker = resolved  # carry resolved name forward
+        return data, resolved
     except Exception as e:
         raise Exception(f"Error fetching data for {ticker}: {str(e)}")
+
 
 
 def calculate_technical_indicators(df):
@@ -187,7 +216,7 @@ def predict_next_close(model, data, scaler, seq_length=60, device='cpu'):
 def predict_stock(ticker, num_epochs=50):
     try:
         print(f"Fetching data for {ticker}...")
-        df = fetch_stock_data(ticker)
+        df, resolved_ticker = fetch_stock_data(ticker)
         df = calculate_technical_indicators(df)
         
         train_loader, test_loader, scaler, feature_cols, X_test, y_test = prepare_data(
@@ -200,14 +229,14 @@ def predict_stock(ticker, num_epochs=50):
         criterion = nn.MSELoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
         
-        print(f"Training model for {ticker}...")
+        print(f"Training model for {resolved_ticker}...")
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
         train_losses = train_model(
             model, train_loader, criterion, optimizer,
             num_epochs=num_epochs, device=device
         )
         
-        print(f"Evaluating model for {ticker}...")
+        print(f"Evaluating model for {resolved_ticker}...")
         predictions, actuals, mse, r2 = evaluate_model(
             model, test_loader, scaler, device=device
         )
@@ -220,7 +249,7 @@ def predict_stock(ticker, num_epochs=50):
         recent_prices = df['Close'].tail(30).values.tolist()
         
         return {
-            'ticker': ticker,
+            'ticker': resolved_ticker,
             'predicted_price': float(next_price),
             'last_close': float(last_close),
             'price_change': float(price_change),
@@ -228,8 +257,9 @@ def predict_stock(ticker, num_epochs=50):
             'mse': float(mse),
             'r2_score': float(r2),
             'recent_prices': recent_prices,
-            'currency': 'INR' if ticker.endswith('.NS') or ticker.endswith('.BO') else 'USD'
+            'currency': 'INR' if resolved_ticker.endswith('.NS') or resolved_ticker.endswith('.BO') else 'USD'
         }
         
     except Exception as e:
         raise Exception(f"Prediction failed: {str(e)}")
+

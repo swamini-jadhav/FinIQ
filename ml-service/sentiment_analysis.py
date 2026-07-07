@@ -1,7 +1,25 @@
 import requests
-from textblob import TextBlob
 import os
 from datetime import datetime, timedelta
+from transformers import pipeline
+
+# Load FinBERT model once at module level to avoid reloading on every call
+_finbert_pipeline = None
+
+def get_finbert_pipeline():
+    """Lazily initialize the FinBERT sentiment pipeline."""
+    global _finbert_pipeline
+    if _finbert_pipeline is None:
+        print("Loading FinBERT model (ProsusAI/finbert)...")
+        _finbert_pipeline = pipeline(
+            "text-classification",
+            model="ProsusAI/finbert",
+            tokenizer="ProsusAI/finbert",
+            max_length=512,
+            truncation=True
+        )
+        print("FinBERT model loaded.")
+    return _finbert_pipeline
 
 NEWSAPI_KEY = os.getenv('NEWSAPI_KEY')
 
@@ -45,23 +63,34 @@ def get_stock_news(ticker, company_name=None, days=7):
 
 
 def analyze_sentiment(text):
+    """Analyze financial sentiment using FinBERT (ProsusAI/finbert).
+    
+    FinBERT returns one of: 'positive', 'negative', 'neutral'
+    We convert the confidence score into a signed polarity value for
+    compatibility with the rest of the codebase.
+    """
     try:
-        blob = TextBlob(text)
-        polarity = blob.sentiment.polarity
+        finbert = get_finbert_pipeline()
         
-        if polarity > 0.1:
-            sentiment = 'positive'
-        elif polarity < -0.1:
-            sentiment = 'negative'
-        else:
-            sentiment = 'neutral'
+        # FinBERT has a 512 token limit; truncate long text
+        result = finbert(text[:1000])[0]
+        label = result['label'].lower()   # 'positive', 'negative', or 'neutral'
+        score = result['score']           # confidence 0-1
+        
+        # Map label + confidence to a signed polarity (-1 to +1)
+        if label == 'positive':
+            polarity = score
+        elif label == 'negative':
+            polarity = -score
+        else:  # neutral
+            polarity = 0.0
         
         return {
-            'polarity': polarity,
-            'sentiment': sentiment
+            'polarity': round(polarity, 4),
+            'sentiment': label
         }
     except Exception as e:
-        print(f"Sentiment analysis error: {str(e)}")
+        print(f"FinBERT sentiment analysis error: {str(e)}")
         return {
             'polarity': 0,
             'sentiment': 'neutral'
