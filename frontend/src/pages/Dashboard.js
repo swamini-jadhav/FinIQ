@@ -238,6 +238,22 @@ const Dashboard = () => {
                 </div>
               </div>
 
+              {/* Evaluation Metrics Grid */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 text-center">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">R² Score</p>
+                  <p className="text-2xl font-bold text-blue-700">
+                    {results.prediction.r2_score.toFixed(4)}
+                  </p>
+                </div>
+                <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 text-center">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">MSE</p>
+                  <p className="text-2xl font-bold text-orange-700">
+                    {results.prediction.mse.toFixed(2)}
+                  </p>
+                </div>
+              </div>
+
               {/* Recommendation Details */}
               <div className="bg-gray-50 rounded-xl p-4">
                 <h4 className="font-semibold text-gray-800 mb-3">Analysis Summary</h4>
@@ -265,6 +281,8 @@ const Dashboard = () => {
                 />
               </div>
             )}
+
+
 
             {/* News Sentiment */}
             {results.sentiment && results.sentiment.articles_analyzed > 0 && (
